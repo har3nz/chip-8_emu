@@ -12,7 +12,7 @@ struct chip8{
     uint8_t memory[4096];
     uint8_t display[64][32];
     uint8_t V[16];
-    uint8_t stack[16];
+    uint16_t stack[16];
     uint8_t keys[16];
     uint16_t opcode;
     uint16_t I;

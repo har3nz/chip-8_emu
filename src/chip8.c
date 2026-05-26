@@ -30,6 +30,7 @@ void initialize(struct chip8 *chip8){
     memset(chip8->V, 0, sizeof(chip8->V));
     memset(chip8->stack, 0, sizeof(chip8->stack));
     memset(chip8->keys, 0, sizeof(chip8->keys));
+    memcpy(chip8->memory, font_set, sizeof(font_set));
     chip8->pc = 0x200;
     chip8->I = 0;
     chip8->opcode = 0;
@@ -37,6 +38,8 @@ void initialize(struct chip8 *chip8){
     chip8->st = 0;
     chip8->sp = 0;
     chip8->draw_flag = false;
+
+
 
     srand(time(NULL));
 }
@@ -95,7 +98,8 @@ void handle_input(struct chip8 *chip8, char key){
 
 void decode_opcode(struct chip8 *chip8){
     int cur_pc = chip8->pc;
-    chip8->opcode = (chip8->memory[chip8->pc++] << 8) | chip8->memory[chip8->pc++];
+    chip8->opcode = (chip8->memory[chip8->pc] << 8) | chip8->memory[chip8->pc + 1];
+    chip8->pc += 2;
     
     printf("PC: %x | Opcode: %x\n", cur_pc, chip8->opcode);
     fflush(stdout);
@@ -108,7 +112,7 @@ void decode_opcode(struct chip8 *chip8){
                     break;
                 
                 case 0xEE:
-                    chip8->sp = (chip8->sp - 1) % sizeof(chip8->stack);
+                    chip8->sp--;
                     chip8->pc = chip8->stack[chip8->sp];
             }
             break;
@@ -118,7 +122,7 @@ void decode_opcode(struct chip8 *chip8){
             break;
 
         case 0x2000:
-            chip8->stack[chip8->sp] = chip8->pc;
+            chip8->stack[chip8->sp++] = chip8->pc;
             chip8->pc = NNN(chip8->opcode);
             break;
         
@@ -155,48 +159,55 @@ void decode_opcode(struct chip8 *chip8){
 
                 case 0x1:
                     chip8->V[X(chip8->opcode)] |= chip8->V[Y(chip8->opcode)];
+                    chip8->V[0xF] = 0;
                     break;  
 
                 case 0x2:
                     chip8->V[X(chip8->opcode)] &= chip8->V[Y(chip8->opcode)];
+                    chip8->V[0xF] = 0;
                     break;  
 
                 case 0x3:
                     chip8->V[X(chip8->opcode)] ^= chip8->V[Y(chip8->opcode)];
+                    chip8->V[0xF] = 0;
                     break;
                         
-                case 0x4:
-                    if ((chip8->V[X(chip8->opcode)] += chip8->V[Y(chip8->opcode)]) > 0xFF)
-                        chip8->V[0xF] = 1;
-                    else
-                        chip8->V[0xF] = 0;
+                case 0x4:{
+                    uint16_t result = chip8->V[X(chip8->opcode)] + chip8->V[Y(chip8->opcode)];
+                    chip8->V[X(chip8->opcode)] = result & 0xFF;
+                    chip8->V[0xF] = result > 0xFF ? 1 : 0;
                     break;
+                }
                         
-                case 0x5:
-                    if ((chip8->V[X(chip8->opcode)] -= chip8->V[Y(chip8->opcode)]) < 0x0)
+                case 0x5:{
+                    bool underflow = chip8->V[Y(chip8->opcode)] > chip8->V[X(chip8->opcode)];
+                    chip8->V[X(chip8->opcode)] -= chip8->V[Y(chip8->opcode)];
+                    if (underflow)
                         chip8->V[0xF] = 0;
                     else
                         chip8->V[0xF] = 1;
                     break;
+                }
                         
                 case 0x6:{
                     uint8_t vxbuff = chip8->V[X(chip8->opcode)];
-                    chip8->V[X(chip8->opcode)] = chip8->V[Y(chip8->opcode)] >> 1;
+                    chip8->V[X(chip8->opcode)] = vxbuff >> 1;
                     chip8->V[0xF] = vxbuff & 1;
                     break;
                 }
                         
-                case 0x7:
-                    if ((chip8->V[X(chip8->opcode)] = chip8->V[Y(chip8->opcode)] - chip8->V[X(chip8->opcode)]) < 0x0)
-                        chip8->V[0xF] = 0;
-                    else
-                        chip8->V[0xF] = 1;
+                case 0x7:{
+                    uint8_t vx = chip8->V[X(chip8->opcode)];
+                    uint8_t vy = chip8->V[Y(chip8->opcode)];
+                    chip8->V[X(chip8->opcode)] = vy - vx;
+                    chip8->V[0xF] = vy >= vx ? 1 : 0;
                     break;
+                }
                         
                 case 0xE:{
                     uint8_t vxbuff = chip8->V[X(chip8->opcode)];
-                    chip8->V[X(chip8->opcode)] = chip8->V[Y(chip8->opcode)] << 1;
-                    chip8->V[0xF] = (vxbuff & 0xFF) >> 7;
+                    chip8->V[X(chip8->opcode)] = vxbuff << 1;
+                    chip8->V[0xF] = vxbuff >> 7;
                     break;
                 }
                     
@@ -228,7 +239,6 @@ void decode_opcode(struct chip8 *chip8){
             chip8->V[0xF] = 0;
             for(uint8_t y = 0; y < N(chip8->opcode); y++){
                 if (pos_y + y > 31){
-                    printf("y did oopsies\n");
                     break;
                 }
 
@@ -236,17 +246,14 @@ void decode_opcode(struct chip8 *chip8){
 
                 for(uint8_t x = 0; x < 8; x++){
                     if(pos_x + x > 63){
-                        printf("x did oopsies\n");
                         break;
                     }
                     
-                    if (((line >> (7 - x)) & 1) == 0); continue;
-                    printf("passed line check\n");
+                    if (((line >> (7 - x)) & 1) == 0) continue;
                     uint8_t* pixel = &chip8->display[pos_x + x][pos_y + y];
                     if (*pixel)
                         chip8->V[0xF] = 1;
                     *pixel ^= 1;
-                    printf("%x \n", chip8->display[pos_x + x][pos_y + y]);
                 }
             }
             break;
@@ -274,17 +281,13 @@ void decode_opcode(struct chip8 *chip8){
 
                 case 0x0A:{
                     bool key_pressed = false;
-                    uint8_t key;
-                    for (int i = 0; i < 0xF; i++){
-                        if(chip8->keys[i] == 1)
+                    for (int i = 0; i < 16; i++){
+                        if(chip8->keys[i]){
+                            chip8->V[X(chip8->opcode)] = i;
                             key_pressed = true;
-                            key = i;
+                            break;
+                        }
                     }
-                    if(key_pressed){
-                        if (chip8->keys[key] == 0)
-                            chip8->V[X(chip8->opcode)] = chip8->keys[key];
-                    }
-
                     if (!key_pressed)
                         chip8->pc -= 2;
                     break;
@@ -303,7 +306,7 @@ void decode_opcode(struct chip8 *chip8){
                     break;
                     
                 case 0x29:
-                    chip8->I = font_set[chip8->V[X(chip8->opcode)] & 0xF];
+                    chip8->I = chip8->V[X(chip8->opcode)] * 5;
                     break;
                     
                 case 0x33:
@@ -313,14 +316,14 @@ void decode_opcode(struct chip8 *chip8){
                     break;
                     
                 case 0x55:
-                    for(int i = 0;i < X(chip8->opcode); i++)
-                        chip8->V[i] = chip8->memory[chip8->I + i];
+                    for(int i = 0; i <= X(chip8->opcode); i++)
+                        chip8->memory[chip8->I + i] = chip8->V[i];
                     chip8->I += X(chip8->opcode) + 1;
                     break;
-                        
+
                 case 0x65:
-                    for(int i = 0;i < X(chip8->opcode); i++)
-                        chip8->memory[chip8->I + i] = chip8->V[i];
+                    for(int i = 0; i <= X(chip8->opcode); i++)
+                        chip8->V[i] = chip8->memory[chip8->I + i];
                     chip8->I += X(chip8->opcode) + 1;
                     break;
             }
