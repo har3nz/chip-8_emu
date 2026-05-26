@@ -59,11 +59,17 @@ bool load_rom(struct chip8 *chip8, char *file_name) {
         return false;
     }
 
-    size_t result = fread(&chip8->memory[0x200], 1, size, file);
+    unsigned char *buffer = malloc((size + 1) * sizeof(unsigned char));
+    fread(buffer, size, 1, file);
     
-    fclose(file);
 
-    return (result == (size_t)size);
+    for(int i = 0; i < size; i++) {
+        chip8->memory[0x200 + i] = buffer[i];
+    }
+    fclose(file);
+    free(buffer);
+    
+    return true;
 }
 
 
@@ -114,7 +120,6 @@ void decode_opcode(struct chip8 *chip8){
         case 0x2000:
             chip8->stack[chip8->sp] = chip8->pc;
             chip8->pc = NNN(chip8->opcode);
-            
             break;
         
         case 0x3000:
@@ -235,7 +240,7 @@ void decode_opcode(struct chip8 *chip8){
                         break;
                     }
                     
-                    if (((line >> (7 - x)) & 1) == 1); continue;
+                    if (((line >> (7 - x)) & 1) == 0); continue;
                     printf("passed line check\n");
                     uint8_t* pixel = &chip8->display[pos_x + x][pos_y + y];
                     if (*pixel)
