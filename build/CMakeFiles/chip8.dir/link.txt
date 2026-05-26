@@ -1,1 +1,0 @@
-/usr/sbin/cc -Wl,--dependency-file=CMakeFiles/chip8.dir/link.d CMakeFiles/chip8.dir/src/chip8.c.o CMakeFiles/chip8.dir/src/main.c.o -o chip8  /usr/lib/libSDL2-2.0.so.0.3200.68
