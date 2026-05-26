@@ -119,18 +119,18 @@ void decode_opcode(struct chip8 *chip8){
         
         case 0x3000:
             if (NN(chip8->opcode) == chip8->V[X(chip8->opcode)])
-                chip8->opcode += 2;
+                chip8->pc += 2;
             break;
         
         case 0x4000:
             if (NN(chip8->opcode) != chip8->V[X(chip8->opcode)])
-                chip8->opcode += 2;
+                chip8->pc += 2;
             break;
 
         case 0x5000:
             if(N(chip8->opcode) == 0){
                 if(chip8->V[X(chip8->opcode)] == chip8->V[Y(chip8->opcode)])
-                    chip8->opcode += 2;
+                    chip8->pc += 2;
             }
             break;
 
@@ -201,7 +201,7 @@ void decode_opcode(struct chip8 *chip8){
         case 0x9000:
             if(N(chip8->opcode) == 0){
                 if (chip8->V[X(chip8->opcode)] != chip8->V[Y(chip8->opcode)])
-                    chip8->opcode += 2;
+                    chip8->pc += 2;
             }
             break;
         
@@ -218,21 +218,25 @@ void decode_opcode(struct chip8 *chip8){
             break;
 
         case 0xD000:{
-            printf("AAAAAa");
             uint8_t pos_x = chip8->V[X(chip8->opcode)] & 63;
             uint8_t pos_y = chip8->V[Y(chip8->opcode)] & 31;
             chip8->V[0xF] = 0;
             for(uint8_t y = 0; y < N(chip8->opcode); y++){
-                if (pos_y + y > 31)
+                if (pos_y + y > 31){
+                    printf("y did oopsies\n");
                     break;
+                }
 
-                uint8_t line = chip8->memory[chip8->I + y];
+                int line = chip8->memory[chip8->I + y];
 
                 for(uint8_t x = 0; x < 8; x++){
-                    if(pos_x + x > 63)
+                    if(pos_x + x > 63){
+                        printf("x did oopsies\n");
                         break;
+                    }
                     
-                    if (((line >> (7 - x)) & 1) == 0); continue;
+                    if (((line >> (7 - x)) & 1) == 1); continue;
+                    printf("passed line check\n");
                     uint8_t* pixel = &chip8->display[pos_x + x][pos_y + y];
                     if (*pixel)
                         chip8->V[0xF] = 1;
@@ -247,12 +251,12 @@ void decode_opcode(struct chip8 *chip8){
             switch(NN(chip8->opcode)){
                 case 0x9E:
                     if (chip8->keys[chip8->V[X(chip8->opcode)]] == 1)
-                        chip8->opcode += 2;
+                        chip8->pc += 2;
                     break;
                 
                 case 0xA1:
                     if (chip8->keys[chip8->V[X(chip8->opcode)]] == 0)
-                        chip8->opcode += 2;
+                        chip8->pc += 2;
                     break;
             }
             break;
