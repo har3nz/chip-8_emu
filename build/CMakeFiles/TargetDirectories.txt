@@ -1,0 +1,4 @@
+/home/har3nz/projects/c/chip-8_emu_2/build/CMakeFiles/chip8.dir
+/home/har3nz/projects/c/chip-8_emu_2/build/CMakeFiles/link_roms.dir
+/home/har3nz/projects/c/chip-8_emu_2/build/CMakeFiles/edit_cache.dir
+/home/har3nz/projects/c/chip-8_emu_2/build/CMakeFiles/rebuild_cache.dir
