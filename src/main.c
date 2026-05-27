@@ -157,7 +157,6 @@ bool sdl_initialize(struct window *window) {
         return false;
     }
 
-    SDL_SetRenderLogicalPresentation(window->renderer, 640, 480, SDL_LOGICAL_PRESENTATION_LETTERBOX);
     spec.channels = 1;
     spec.format = SDL_AUDIO_F32;
     spec.freq = 8000;

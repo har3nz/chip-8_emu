@@ -89,10 +89,10 @@ void update_timers(struct chip8 *chip8, struct window *window){
     
     static int current_sine_sample = 0;
     
-    const int minimum_audio = (8000 * sizeof (float)) / 2;  /* 8000 float samples per second. Half of that. */
+    const int minimum_audio = (8000 * sizeof (float)) / 2;
     if(chip8->st > 0){
         if (SDL_GetAudioStreamQueued(window->stream) < minimum_audio) {
-            static float samples[512];  /* this will feed 512 samples each frame until we get to our maximum. */
+            static float samples[512];
             int i;
 
             for (i = 0; i < SDL_arraysize(samples); i++) {
@@ -102,10 +102,8 @@ void update_timers(struct chip8 *chip8, struct window *window){
                 current_sine_sample++;
             }
 
-            /* wrapping around to avoid floating-point errors */
             current_sine_sample %= 8000;
 
-            /* feed the new data to the stream. It will queue at the end, and trickle out as the hardware needs more data. */
             SDL_PutAudioStreamData(window->stream, samples, sizeof (samples));
         }
         chip8->st--;
