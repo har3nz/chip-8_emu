@@ -91,8 +91,10 @@ void update_timers(struct chip8 *chip8){
 }
 
 
-void handle_input(struct chip8 *chip8, char key){
-
+void handle_input(struct chip8 *chip8, enum chip_key key, bool is_down){
+    if (key >= 0 && key <= 0xF) {
+        chip8->keys[key] = is_down;
+    }
 }
 
 
@@ -281,13 +283,17 @@ void decode_opcode(struct chip8 *chip8){
 
                 case 0x0A:{
                     bool key_pressed = false;
-                    for (int i = 0; i < 16; i++){
-                        if(chip8->keys[i]){
-                            chip8->V[X(chip8->opcode)] = i;
+                    uint8_t key;
+                    for (int i = 0; i < 0xF; i++){
+                        if(chip8->keys[i] == 1)
                             key_pressed = true;
-                            break;
-                        }
+                            key = i;
                     }
+                    if(key_pressed){
+                        if (chip8->keys[key] == 0)
+                            chip8->V[X(chip8->opcode)] = chip8->keys[key];
+                    }
+
                     if (!key_pressed)
                         chip8->pc -= 2;
                     break;

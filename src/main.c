@@ -34,15 +34,56 @@ int main(int argc, char *argv[]){
                 case SDL_QUIT:
                     running = false;
                     break;
-
                 case SDL_KEYDOWN:
-                    switch (event.key.keysym.sym) {
-                        case SDLK_ESCAPE:
+                    switch (event.key.keysym.scancode) {
+                        case SDL_SCANCODE_ESCAPE:
                             running = false;
                             break;
-                            
-                        default:
-                            break;
+
+                        case SDL_SCANCODE_1: handle_input(&chip8, KEY_1, true); break;
+                        case SDL_SCANCODE_2: handle_input(&chip8, KEY_2, true); break;
+                        case SDL_SCANCODE_3: handle_input(&chip8, KEY_3, true); break;
+                        case SDL_SCANCODE_4: handle_input(&chip8, KEY_C, true); break;
+
+                        case SDL_SCANCODE_Q: handle_input(&chip8, KEY_4, true); break;
+                        case SDL_SCANCODE_W: handle_input(&chip8, KEY_5, true); break;
+                        case SDL_SCANCODE_E: handle_input(&chip8, KEY_6, true); break;
+                        case SDL_SCANCODE_R: handle_input(&chip8, KEY_D, true); break;
+
+                        case SDL_SCANCODE_A: handle_input(&chip8, KEY_7, true); break;
+                        case SDL_SCANCODE_S: handle_input(&chip8, KEY_8, true); break;
+                        case SDL_SCANCODE_D: handle_input(&chip8, KEY_9, true); break;
+                        case SDL_SCANCODE_F: handle_input(&chip8, KEY_E, true); break;
+
+                        case SDL_SCANCODE_Z: handle_input(&chip8, KEY_A, true); break;
+                        case SDL_SCANCODE_X: handle_input(&chip8, KEY_0, true); break;
+                        case SDL_SCANCODE_C: handle_input(&chip8, KEY_B, true); break;
+                        case SDL_SCANCODE_V: handle_input(&chip8, KEY_F, true); break;
+                        default: break;
+                    }
+                    break;
+                case SDL_KEYUP:
+                    switch(event.key.keysym.scancode){
+                        case SDL_SCANCODE_1: handle_input(&chip8, KEY_1, false); break;
+                        case SDL_SCANCODE_2: handle_input(&chip8, KEY_2, false); break;
+                        case SDL_SCANCODE_3: handle_input(&chip8, KEY_3, false); break;
+                        case SDL_SCANCODE_4: handle_input(&chip8, KEY_C, false); break;
+
+                        case SDL_SCANCODE_Q: handle_input(&chip8, KEY_4, false); break;
+                        case SDL_SCANCODE_W: handle_input(&chip8, KEY_5, false); break;
+                        case SDL_SCANCODE_E: handle_input(&chip8, KEY_6, false); break;
+                        case SDL_SCANCODE_R: handle_input(&chip8, KEY_D, false); break;
+
+                        case SDL_SCANCODE_A: handle_input(&chip8, KEY_7, false); break;
+                        case SDL_SCANCODE_S: handle_input(&chip8, KEY_8, false); break;
+                        case SDL_SCANCODE_D: handle_input(&chip8, KEY_9, false); break;
+                        case SDL_SCANCODE_F: handle_input(&chip8, KEY_E, false); break;
+
+                        case SDL_SCANCODE_Z: handle_input(&chip8, KEY_A, false); break;
+                        case SDL_SCANCODE_X: handle_input(&chip8, KEY_0, false); break;
+                        case SDL_SCANCODE_C: handle_input(&chip8, KEY_B, false); break;
+                        case SDL_SCANCODE_V: handle_input(&chip8, KEY_F, false); break;
+                        default: break;
                     }
                 default:
                     break;
