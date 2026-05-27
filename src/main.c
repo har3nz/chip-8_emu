@@ -1,6 +1,7 @@
 #include "main.h"
 #include "chip8.h"
 #include <stdio.h>
+#include <math.h>
 
 int main(int argc, char *argv[]){
 
@@ -31,8 +32,6 @@ int main(int argc, char *argv[]){
     SDL_InitSubSystem(SDL_INIT_AUDIO);
     SDL_InitSubSystem(SDL_INIT_VIDEO);
 
-    static int current_sine_sample = 0;
-    
     const int minimum_audio = (8000 * sizeof (float)) / 2;
 
     while(running){
@@ -105,18 +104,23 @@ int main(int argc, char *argv[]){
 
         if(chip8.sp > 0){
             if (SDL_GetAudioStreamQueued(window.stream) < minimum_audio) {
-                static float samples[512];
                 
-                for (int i = 0; i < SDL_arraysize(samples); i++) {
-                    const int freq = 440;
-                    const float phase = current_sine_sample * freq / 8000.0f;
-                    samples[i] = SDL_sinf(phase * 2 * SDL_PI_F);
-                    current_sine_sample++;
+                SDL_AudioSpec spec;
+                SDL_GetAudioStreamFormat(window.stream, NULL, &spec);
+                double sample_rate = 48000;
+                float buffer[sizeof(sample_rate)];
+                double phase = 0;
+                double step = spec.freq / sample_rate;
+                
+                for (auto i = 0; i < sample_rate; ++i){
+                    const double volume = 0.1f;
+                    buffer[i] = phase >= 0.5 ? volume : -volume;
+                    double a;
+                    double b = modf(phase + step, &a);
+                    phase += a;
                 }
 
-                current_sine_sample %= 8000;
-
-                SDL_PutAudioStreamData(window.stream, samples, sizeof (samples));
+                SDL_PutAudioStreamData(window.stream, buffer, sizeof(buffer));
             }
         }
         
