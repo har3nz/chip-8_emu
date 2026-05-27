@@ -1,5 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include "main.h"
+
 
 #define NNN(x) (x & 0xFFF)
 #define NN(x) (x & 0xFF)
@@ -45,5 +47,5 @@ void initialize(struct chip8 *chip8);
 bool load_rom(struct chip8 *chip8, char *file_name);
 void handle_input(struct chip8 *chip8, enum chip_key key, bool is_down);
 void clear_display(struct chip8 *chip8);
-void update_timers(struct chip8 *chip8);
+void update_timers(struct chip8 *chip8, struct window *window);
 void decode_opcode(struct chip8 *chip8);

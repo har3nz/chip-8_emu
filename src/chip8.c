@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <SDL3/SDL.h>
 #include "chip8.h"
 
 static unsigned const char font_set[80] =
@@ -82,11 +83,32 @@ void clear_display(struct chip8 *chip8){
 }
 
 
-void update_timers(struct chip8 *chip8){
+void update_timers(struct chip8 *chip8, struct window *window){
     if(chip8->dt > 0)
         chip8->dt--;
     
+    static int current_sine_sample = 0;
+    
+    const int minimum_audio = (8000 * sizeof (float)) / 2;  /* 8000 float samples per second. Half of that. */
     if(chip8->st > 0)
+        if (SDL_GetAudioStreamQueued(window->stream) < minimum_audio) {
+            static float samples[512];  /* this will feed 512 samples each frame until we get to our maximum. */
+            int i;
+
+            /* generate a 440Hz pure tone */
+            for (i = 0; i < SDL_arraysize(samples); i++) {
+                const int freq = 440;
+                const float phase = current_sine_sample * freq / 8000.0f;
+                samples[i] = SDL_sinf(phase * 2 * SDL_PI_F);
+                current_sine_sample++;
+            }
+
+            /* wrapping around to avoid floating-point errors */
+            current_sine_sample %= 8000;
+
+            /* feed the new data to the stream. It will queue at the end, and trickle out as the hardware needs more data. */
+            SDL_PutAudioStreamData(window->stream, samples, sizeof (samples));
+        }
         chip8->st--;
 }
 
