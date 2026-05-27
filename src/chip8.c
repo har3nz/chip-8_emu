@@ -87,27 +87,8 @@ void update_timers(struct chip8 *chip8, struct window *window){
     if(chip8->dt > 0)
         chip8->dt--;
     
-    static int current_sine_sample = 0;
-    
-    const int minimum_audio = (8000 * sizeof (float)) / 2;
-    if(chip8->st > 0){
-        if (SDL_GetAudioStreamQueued(window->stream) < minimum_audio) {
-            static float samples[512];
-            int i;
-
-            for (i = 0; i < SDL_arraysize(samples); i++) {
-                const int freq = 440;
-                const float phase = current_sine_sample * freq / 8000.0f;
-                samples[i] = SDL_sinf(phase * 2 * SDL_PI_F);
-                current_sine_sample++;
-            }
-
-            current_sine_sample %= 8000;
-
-            SDL_PutAudioStreamData(window->stream, samples, sizeof (samples));
-        }
+    if(chip8->st > 0)
         chip8->st--;
-    }
 }
 
 

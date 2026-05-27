@@ -30,6 +30,10 @@ int main(int argc, char *argv[]){
     SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
     SDL_InitSubSystem(SDL_INIT_AUDIO);
 
+    static int current_sine_sample = 0;
+    
+    const int minimum_audio = (8000 * sizeof (float)) / 2;
+
     while(running){
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -97,6 +101,25 @@ int main(int argc, char *argv[]){
 
         for (int i = 0; i < 11; i++)
             decode_opcode(&chip8);
+
+        if(chip8.sp > 0){
+            if (SDL_GetAudioStreamQueued(window.stream) < minimum_audio) {
+                static float samples[512];
+                int i;
+
+                for (i = 0; i < SDL_arraysize(samples); i++) {
+                    const int freq = 440;
+                    const float phase = current_sine_sample * freq / 8000.0f;
+                    samples[i] = SDL_sinf(phase * 2 * SDL_PI_F);
+                    current_sine_sample++;
+                }
+
+                current_sine_sample %= 8000;
+
+                SDL_PutAudioStreamData(window.stream, samples, sizeof (samples));
+            }
+        }
+        
 
         SDL_SetRenderDrawColor(window.renderer, 0, 0, 0, 250);
         SDL_RenderClear(window.renderer);
