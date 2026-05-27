@@ -90,12 +90,11 @@ void update_timers(struct chip8 *chip8, struct window *window){
     static int current_sine_sample = 0;
     
     const int minimum_audio = (8000 * sizeof (float)) / 2;  /* 8000 float samples per second. Half of that. */
-    if(chip8->st > 0)
+    if(chip8->st > 0){
         if (SDL_GetAudioStreamQueued(window->stream) < minimum_audio) {
             static float samples[512];  /* this will feed 512 samples each frame until we get to our maximum. */
             int i;
 
-            /* generate a 440Hz pure tone */
             for (i = 0; i < SDL_arraysize(samples); i++) {
                 const int freq = 440;
                 const float phase = current_sine_sample * freq / 8000.0f;
@@ -110,6 +109,7 @@ void update_timers(struct chip8 *chip8, struct window *window){
             SDL_PutAudioStreamData(window->stream, samples, sizeof (samples));
         }
         chip8->st--;
+    }
 }
 
 
