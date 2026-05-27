@@ -40,7 +40,6 @@ struct chip8{
     uint8_t dt;
     uint8_t st;
     uint8_t sp;
-    bool draw_flag;
 };
 
 void initialize(struct chip8 *chip8);

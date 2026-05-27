@@ -38,9 +38,6 @@ void initialize(struct chip8 *chip8){
     chip8->dt = 0;
     chip8->st = 0;
     chip8->sp = 0;
-    chip8->draw_flag = false;
-
-
 
     srand(time(NULL));
 }
@@ -79,7 +76,6 @@ bool load_rom(struct chip8 *chip8, char *file_name) {
 
 void clear_display(struct chip8 *chip8){
     memset(chip8-> display, 0, sizeof(chip8->display));
-    chip8->draw_flag = true;
 }
 
 

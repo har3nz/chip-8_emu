@@ -29,6 +29,7 @@ int main(int argc, char *argv[]){
                                     
     SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
     SDL_InitSubSystem(SDL_INIT_AUDIO);
+    SDL_InitSubSystem(SDL_INIT_VIDEO);
 
     static int current_sine_sample = 0;
     
@@ -105,9 +106,8 @@ int main(int argc, char *argv[]){
         if(chip8.sp > 0){
             if (SDL_GetAudioStreamQueued(window.stream) < minimum_audio) {
                 static float samples[512];
-                int i;
-
-                for (i = 0; i < SDL_arraysize(samples); i++) {
+                
+                for (int i = 0; i < SDL_arraysize(samples); i++) {
                     const int freq = 440;
                     const float phase = current_sine_sample * freq / 8000.0f;
                     samples[i] = SDL_sinf(phase * 2 * SDL_PI_F);
@@ -120,24 +120,21 @@ int main(int argc, char *argv[]){
             }
         }
         
-
-        SDL_SetRenderDrawColor(window.renderer, 0, 0, 0, 250);
+        
         SDL_RenderClear(window.renderer);
         
-        if(chip8.draw_flag){
-            uint32_t *pixels = NULL;
-            int pitch = 0;
+        uint32_t *pixels = NULL;
+        int pitch = 0;
 
-            SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch) ;
-            for (int y = 0; y < 32; y++){
-                for(int x = 0; x < 64; x++){
-                    uint32_t color = chip8.display[x][y] ?  0xFFFFFFFF : 0x00000000;
-                    pixels[y * (pitch / sizeof(uint32_t)) + x] = color;
-                }
+        SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch) ;
+        for (int y = 0; y < 32; y++){
+            for(int x = 0; x < 64; x++){
+                uint32_t color = chip8.display[x][y] ?  0xFFFFFFFF : 0x0000000;
+                pixels[y * (pitch / sizeof(uint32_t)) + x] = color;
             }
-            SDL_UnlockTexture(texture);
         }
-
+        SDL_UnlockTexture(texture);
+        
         SDL_RenderTexture(window.renderer, texture, NULL, NULL);
 
         SDL_RenderPresent(window.renderer);
