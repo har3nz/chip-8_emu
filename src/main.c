@@ -104,40 +104,36 @@ int main(int argc, char *argv[]){
             decode_opcode(&chip8);
 
         
-        if (SDL_GetAudioStreamQueued(window.stream) < minimum_audio)
+        SDL_AudioSpec spec;
+        SDL_GetAudioStreamFormat(window.stream, NULL, &spec);
+
+        int spf = spec.freq / 60;
+
+        float *buffer = (float*)calloc(spf, sizeof(float));
+
+        double phase = 0.0;
+        double step = 440.0 / spec.freq;
+
+        if (chip8.st > 0)
         {
-            SDL_AudioSpec spec;
-            SDL_GetAudioStreamFormat(window.stream, NULL, &spec);
-
-            int spf = spec.freq / 60;
-
-            float *buffer = (float*)calloc(spf, sizeof(float));
-
-            double phase = 0.0;
-            double step = 440.0 / spec.freq;
-
-            if (chip8.st > 0)
+            for (int i = 0; i < spf; ++i)
             {
-                for (int i = 0; i < spf; ++i)
-                {
-                    printf("freq %d | spf %d", spec.freq, spf);
-                    const float volume = 0.1f;
+                const float volume = 0.1f;
 
-                    buffer[i] = (phase < 0.5) ? volume : -volume;
+                buffer[i] = (phase < 0.5) ? volume : -volume;
 
-                    phase += step;
+                phase += step;
 
-                    if (phase >= 1.0)
-                        phase -= 1.0;
-                }
+                if (phase >= 1.0)
+                    phase -= 1.0;
             }
-
-            SDL_PutAudioStreamData(
-                window.stream, buffer, sizeof(float) * spf
-            );
-
-            free(buffer);
         }
+
+        SDL_PutAudioStreamData(
+            window.stream, buffer, sizeof(float) * spf
+        );
+
+        free(buffer);
         
         
         SDL_RenderClear(window.renderer);
