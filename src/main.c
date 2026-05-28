@@ -105,7 +105,11 @@ int main(int argc, char *argv[]){
 
         
         SDL_AudioSpec spec;
-        SDL_GetAudioStreamFormat(window.stream, NULL, &spec);
+
+        spec.channels = 1;
+        spec.format = SDL_AUDIO_F32;
+
+        SDL_SetAudioStreamFormat(window.stream, &spec, NULL)
 
         int spf = spec.freq / 60;
 
@@ -168,7 +172,6 @@ int main(int argc, char *argv[]){
 
 
 bool sdl_initialize(struct window *window) {
-    SDL_AudioSpec spec;
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         fprintf(stderr, "Failed to initialize SDL: %s\n", SDL_GetError());
@@ -192,10 +195,8 @@ bool sdl_initialize(struct window *window) {
         return false;
     }
 
-    spec.channels = 1;
-    spec.format = SDL_AUDIO_F32;
-    spec.freq = 8000;
-    window->stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, NULL, NULL);
+    
+    window->stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL, NULL, NULL);
     if (!window->stream) {
         SDL_Log("Couldn't create audio stream: %s", SDL_GetError());
         return SDL_APP_FAILURE;
