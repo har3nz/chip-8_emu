@@ -33,8 +33,7 @@ int main(int argc, char *argv[]){
     SDL_InitSubSystem(SDL_INIT_AUDIO);
     SDL_InitSubSystem(SDL_INIT_VIDEO);
 
-    const int minimum_audio = (8000 * sizeof (float)) / 2;
-
+    double phase = 0.0;
     while(running){
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -116,7 +115,7 @@ int main(int argc, char *argv[]){
 
         float *buffer = (float*)calloc(spf, sizeof(float));
 
-        double phase = 0.0;
+        
         double step = 440.0 / spec.freq;
 
         if (chip8.st > 0)
@@ -173,7 +172,6 @@ int main(int argc, char *argv[]){
 
 
 bool sdl_initialize(struct window *window) {
-
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         fprintf(stderr, "Failed to initialize SDL: %s\n", SDL_GetError());
         return false;
