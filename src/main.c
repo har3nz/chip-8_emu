@@ -105,11 +105,12 @@ int main(int argc, char *argv[]){
 
         
         SDL_AudioSpec spec;
+        SDL_GetAudioStreamFormat(window.stream, NULL, &spec);
 
         spec.channels = 1;
         spec.format = SDL_AUDIO_F32;
 
-        SDL_SetAudioStreamFormat(window.stream, &spec, NULL)
+        SDL_SetAudioStreamFormat(window.stream, &spec, NULL);
 
         int spf = spec.freq / 60;
 
