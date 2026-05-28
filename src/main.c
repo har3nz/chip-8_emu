@@ -1,6 +1,7 @@
 #include "main.h"
 #include "chip8.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
 int main(int argc, char *argv[]){
@@ -102,26 +103,40 @@ int main(int argc, char *argv[]){
         for (int i = 0; i < 11; i++)
             decode_opcode(&chip8);
 
-        if(chip8.sp > 0){
-            if (SDL_GetAudioStreamQueued(window.stream) < minimum_audio) {
-                
-                SDL_AudioSpec spec;
-                SDL_GetAudioStreamFormat(window.stream, NULL, &spec);
-                double sample_rate = 48000;
-                float buffer[sizeof(sample_rate)];
-                double phase = 0;
-                double step = spec.freq / sample_rate;
-                
-                for (auto i = 0; i < sample_rate; ++i){
-                    const double volume = 0.1f;
-                    buffer[i] = phase >= 0.5 ? volume : -volume;
-                    double a;
-                    double b = modf(phase + step, &a);
-                    phase += a;
-                }
+        
+        if (SDL_GetAudioStreamQueued(window.stream) < minimum_audio)
+        {
+            SDL_AudioSpec spec;
+            SDL_GetAudioStreamFormat(window.stream, NULL, &spec);
 
-                SDL_PutAudioStreamData(window.stream, buffer, sizeof(buffer));
+            int spf = spec.freq / 60;
+
+            float *buffer = (float*)calloc(spf, sizeof(float));
+
+            double phase = 0.0;
+            double step = 440.0 / spec.freq;
+
+            if (chip8.st > 0)
+            {
+                for (int i = 0; i < spf; ++i)
+                {
+                    printf("freq %d | spf %d", spec.freq, spf);
+                    const float volume = 0.1f;
+
+                    buffer[i] = (phase < 0.5) ? volume : -volume;
+
+                    phase += step;
+
+                    if (phase >= 1.0)
+                        phase -= 1.0;
+                }
             }
+
+            SDL_PutAudioStreamData(
+                window.stream, buffer, sizeof(float) * spf
+            );
+
+            free(buffer);
         }
         
         
